@@ -5,19 +5,62 @@
     android:layout_height="match_parent"
     tools:context="com.danidevelop.lyricsoffline.MainActivity">
 
-    <TextView
-        android:text="@string/hello_world"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/main_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
 
-    <!-- view for AdMob Banner Ad -->
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id" />
+    <RelativeLayout
+        android:id="@+id/layout_main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/main_toolbar">
+
+        <!-- view for AdMob Banner Ad -->
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/id_banner_lyrics_offline" />
+
+        <ListView
+            android:id="@+id/main_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/adView"
+            android:divider="@drawable/list_divider"
+            android:dividerHeight="1dip" />
+
+        <RelativeLayout
+            android:id="@+id/layout_empty_message"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/adView"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_search"
+                android:layout_centerHorizontal="true"/>
+
+            <TextView
+                android:id="@+id/txt_empty_songlis_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="@string/no_songs"
+                android:textColor="@color/primary_text"
+                android:textSize="30sp" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
 
 </RelativeLayout>
