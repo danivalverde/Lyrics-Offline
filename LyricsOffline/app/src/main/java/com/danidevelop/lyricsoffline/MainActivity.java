@@ -6,6 +6,8 @@ import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -25,11 +27,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_main);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         myToolbar.setTitleTextColor(Color.argb(255, 255, 255, 255));
         setSupportActionBar(myToolbar);
+
 
         // Layout elements
         this.listViewSongs = (ListView) findViewById(R.id.main_list_view);
@@ -90,6 +94,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         /*// Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -120,7 +130,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_search) {
-            Toast.makeText(getApplicationContext(), "Search", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), "Search", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, SearchActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
