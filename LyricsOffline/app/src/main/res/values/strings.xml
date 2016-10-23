@@ -5,6 +5,11 @@
     <string name="search_song">Search for song lyrics</string>
     <string name="no_songs">Looks like you have no saved songs. Use the search button to find and save some lyrics!</string>
     <string name="title_activity_search">Search</string>
+    <string name="title_activity_lyric">Lyrics</string>
+    <string name="http_call_error">Something went wrong. Please try another search term.</string>
+    <string name="error_saving_song">Impossible to save the lyrics</string>
+    <string name="confirm_delete_title">You are going to delete this lyric.</string>
+    <string name="confirm_delete_message">Are you sure?</string>
 
 
     <!-- -

@@ -1,45 +1,66 @@
 package com.danidevelop.lyricsoffline;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.danidevelop.lyricsoffline.SQL.SongsSQLiteHelper;
-import com.danidevelop.lyricsoffline.adapters.SongAdapter;
-import com.danidevelop.lyricsoffline.objects.Song;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import android.app.ActivityOptions;
-import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ListView;
-import android.widget.Toast;
-
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
 
-    ListView listViewSongs;
+public class LyricActivity extends AppCompatActivity {
+
+    String title;
+    String artist;
+    String lyric;
+
+    TextView txtLyric;
+    TextView txtTitle;
+    TextView txtArtist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_lyric);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        Intent intent = getIntent();
+        this.title = intent.getStringExtra("title");
+        this.artist = intent.getStringExtra("artist");
+        this.lyric = intent.getStringExtra("lyric");
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.lyric_toolbar);
         myToolbar.setTitleTextColor(Color.argb(255, 255, 255, 255));
         setSupportActionBar(myToolbar);
+        myToolbar.setNavigationIcon(R.drawable.ic_back);
+        myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
-        this.listViewSongs = (ListView) findViewById(R.id.main_list_view);
+        this.txtLyric = (TextView) findViewById(R.id.txtLyric);
+        this.txtTitle = (TextView) findViewById(R.id.txtTitle);
+        this.txtArtist = (TextView) findViewById(R.id.txtArtist);
 
-        this.loadSavedLyrics();
+        this.txtLyric.setText(this.lyric);
+        this.txtTitle.setText(this.title);
+        this.txtArtist.setText(this.artist);
 
         // Load an ad into the AdMob banner view.
         AdView mAdView = (AdView) findViewById(R.id.adView);
@@ -77,37 +98,11 @@ public class MainActivity extends AppCompatActivity {
         // Load ads
         AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
         mAdView.loadAd(adRequest);
-
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-        this.loadSavedLyrics();
-    }
-
-    private void loadSavedLyrics() {
-        SongsSQLiteHelper helper = new SongsSQLiteHelper(this, "DBSongs", null, 1);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM Songs", null);
-        ArrayList<Song> list = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            Song song = new Song();
-            song.setTitle(cursor.getString(0));
-            song.setArtist(cursor.getString(1));
-            song.setUrl(cursor.getString(2));
-            song.setLyric(cursor.getString(3));
-            list.add(song);
-        }
-        SongAdapter adapter = new SongAdapter(this, list);
-        this.listViewSongs.setEmptyView(findViewById(R.id.layout_empty_message));
-        this.listViewSongs.setAdapter(adapter);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_lyric, menu);
         String name = menu.getClass().getSimpleName();
         if (name.equals("MenuBuilder")) {
             try {
@@ -131,13 +126,32 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_search) {
-            //Toast.makeText(getApplicationContext(), "Search", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, SearchActivity.class);
-            startActivity(intent);
+        if (id == R.id.action_delete) {
+
+            final SongsSQLiteHelper helper = new SongsSQLiteHelper(this, "DBSongs", null, 1);
+
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.confirm_delete_title));
+            builder.setMessage(getString(R.string.confirm_delete_message));
+            builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    SQLiteDatabase db = helper.getWritableDatabase();
+                    db.delete("Songs", "Title='" + title + "' AND Artist='" + artist + "'", null);
+                    dialog.dismiss();
+                    finish();
+                }
+            });
+            builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
         }
 
         return super.onOptionsItemSelected(item);
     }
-
 }

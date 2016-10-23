@@ -7,6 +7,7 @@ package com.danidevelop.lyricsoffline.objects;
 public class Song {
     String title;
     String artist;
+    String url;
     String lyric;
 
     public Song() {
@@ -31,6 +32,14 @@ public class Song {
 
     public void setArtist(String artist) {
         this.artist = artist;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getLyric() {
