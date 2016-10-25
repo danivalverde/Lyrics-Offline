@@ -31,7 +31,7 @@
         <ListView
             android:id="@+id/main_list_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_above="@id/adView"
             android:divider="@drawable/list_divider"
             android:dividerHeight="1dip" />

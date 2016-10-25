@@ -8,6 +8,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -72,31 +73,31 @@ public class LyricActivity extends AppCompatActivity {
 
             @Override
             public void onAdLoaded() {
-                showToast("Ad loaded.");
+                Log.i("ADMOB", "Ad Loaded");
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                showToast(String.format("Ad failed to load with error code %d.", errorCode));
+                Log.i("ADMOB", String.format("Ad failed to load with error code %d.", errorCode));
             }
 
             @Override
             public void onAdOpened() {
-                showToast("Ad opened.");
+                Log.i("ADMOB", "Ad Opened");
             }
 
             @Override
             public void onAdClosed() {
-                showToast("Ad closed.");
+                Log.i("ADMOB", "Ad Closed");
             }
 
             @Override
             public void onAdLeftApplication() {
-                showToast("Ad left application.");
+                Log.i("ADMOB", "Ad Left Application");
             }
         });
         // Load ads
-        AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
+        AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }
 
