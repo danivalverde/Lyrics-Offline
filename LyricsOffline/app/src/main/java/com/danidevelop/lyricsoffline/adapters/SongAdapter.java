@@ -21,6 +21,10 @@ import com.danidevelop.lyricsoffline.objects.Song;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,6 +53,8 @@ public class SongAdapter extends ArrayAdapter<Song> {
     private Song selectedSong;
     private Activity activity;
     private Context context;
+
+    private Document document = null;
 
     public SongAdapter(Context context, ArrayList<Song> data) {
         super(context, R.layout.item_list_song, data);
@@ -86,8 +92,7 @@ public class SongAdapter extends ArrayAdapter<Song> {
                     intent.putExtra("artist", selectedSong.getArtist());
                     intent.putExtra("lyric", selectedSong.getLyric());
                     context.startActivity(intent);
-                }
-                else if (layoutID == R.layout.item_list_search) {
+                } else if (layoutID == R.layout.item_list_search) {
                     url = selectedSong.getUrl();
                     GetLyricsAsyncTask task = new GetLyricsAsyncTask();
                     task.execute();
@@ -109,77 +114,36 @@ public class SongAdapter extends ArrayAdapter<Song> {
 
     // Get Lyrics (HTTP GET)
     private class GetLyricsAsyncTask extends AsyncTask<Void, Void, String> {
-
         @Override
         protected String doInBackground(Void... params) {
 
-            String response = new String();
-
-            HttpURLConnection connection;
-            Map<String, Object> parameters = new LinkedHashMap<>();
-            parameters.put("url", url);
-
-            StringBuilder postData = new StringBuilder();
-            for (Map.Entry<String, Object> param : parameters.entrySet()) {
-                try {
-                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                    postData.append('=');
-                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                postData.append('&');
-            }
-            String urlParameters = postData.toString();
-
             try {
-                URL url = new URL(Constants.URL_GET_LYRICS + "?" + urlParameters);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.setReadTimeout(Constants.MILIS_TIMEOUT);
-                connection.setConnectTimeout(Constants.MILIS_TIMEOUT);
-                connection.setRequestMethod("POST");
-
-                OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
-                out.write(urlParameters);
-                out.flush();
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
-                    response += line;
-                }
-                in.close();
-                out.close();
-
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
-                success = false;
+                String url = selectedSong.getUrl();
+                document = Jsoup.connect(url).get();
             } catch (IOException e) {
+                document = null;
                 e.printStackTrace();
-                success = false;
             }
 
-            return response;
+            return "";
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            JSONObject jsonObject = null;
-            try {
-                jsonObject = new JSONObject(s);
-                success = jsonObject.getBoolean(Constants.PARAMETER_SUCCESS);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            if (success) {
+            success = false;
+            if (document != null) {
                 try {
-                    String lyric = jsonObject.getString("data");
+                    String lyric = document.select("div#content_h").first().html();
+
+                    lyric = lyric.replace("\n<br>", "\r\n");
+
                     selectedSong.setLyric(lyric);
-                } catch (JSONException e) {
+
+                    success = true;
+                } catch (Exception e) {
+                    success = false;
                     e.printStackTrace();
                 }
             }

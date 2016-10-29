@@ -97,6 +97,7 @@ public class LyricActivity extends AppCompatActivity {
             }
         });
         // Load ads
+        //AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }

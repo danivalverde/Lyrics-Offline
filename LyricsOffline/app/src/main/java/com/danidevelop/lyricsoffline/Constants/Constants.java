@@ -6,9 +6,7 @@ package com.danidevelop.lyricsoffline.Constants;
 
 public class Constants {
 
-    public static int MILIS_TIMEOUT = 30000;
-    public static String PARAMETER_SUCCESS = "success";
-    public static String URL_SELECT_SONG = "http://www.danidevelop.com/lyricsoffline/select_song.php";
-    public static String URL_GET_LYRICS = "http://www.danidevelop.com/lyricsoffline/get_lyrics.php";
+    public static String URL_BASE = "http://www.lyricsfreak.com";
+    public static String URL_SELECT_SONG = "http://www.lyricsfreak.com/search.php?a=search&type=song&q=";
 
 }

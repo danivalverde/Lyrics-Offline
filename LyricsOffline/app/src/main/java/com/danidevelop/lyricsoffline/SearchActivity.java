@@ -24,34 +24,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Text;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class SearchActivity extends AppCompatActivity {
 
-    boolean success = false;
     String querySong = "";
     ArrayList<Song> listSong;
 
@@ -59,6 +47,8 @@ public class SearchActivity extends AppCompatActivity {
     EditText txtSearch;
     ImageButton btnSearch;
     ListView searchListView;
+
+    Document document = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +127,7 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
         // Load ads
+        //AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }
@@ -176,13 +167,16 @@ public class SearchActivity extends AppCompatActivity {
             this.listSong.clear();
             findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
             this.querySong = this.txtSearch.getText().toString();
-            SelectSongAsyncTask task = new SelectSongAsyncTask();
+            /*SelectSongAsyncTask task = new SelectSongAsyncTask();
+            task.execute();*/
+
+            SearchSongTask task = new SearchSongTask();
             task.execute();
         }
     }
 
     private void updateUI() {
-        if (!this.success) {
+        if (this.listSong.size() == 0) {
             Toast.makeText(getApplicationContext(), getString(R.string.http_call_error), Toast.LENGTH_SHORT).show();
         } else {
             SongAdapter adapter = new SongAdapter(getApplicationContext(), this.listSong, R.layout.item_list_search, this);
@@ -216,87 +210,53 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     // Select song (HTTP GET)
-    private class SelectSongAsyncTask extends AsyncTask<Void, Void, String> {
+    private class SearchSongTask extends AsyncTask<Void, Void, String> {
 
         @Override
         protected String doInBackground(Void... params) {
 
-            String response = new String();
-
-            HttpURLConnection connection;
-            Map<String, Object> parameters = new LinkedHashMap<>();
-            parameters.put("song", querySong);
-
-            StringBuilder postData = new StringBuilder();
-            for (Map.Entry<String, Object> param : parameters.entrySet()) {
-                try {
-                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-                    postData.append('=');
-                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                postData.append('&');
-            }
-            String urlParameters = postData.toString();
-
             try {
-                URL url = new URL(Constants.URL_SELECT_SONG + "?" + urlParameters);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.setReadTimeout(Constants.MILIS_TIMEOUT);
-                connection.setConnectTimeout(Constants.MILIS_TIMEOUT);
-                connection.setRequestMethod("POST");
-
-                OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
-                out.write(urlParameters);
-                out.flush();
-
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
-                    response += line;
-                }
-                in.close();
-                out.close();
-
-            } catch (SocketTimeoutException e) {
-                e.printStackTrace();
-                success = false;
+                String url = Constants.URL_SELECT_SONG + querySong;
+                document = Jsoup.connect(url).get();
             } catch (IOException e) {
+                document = null;
                 e.printStackTrace();
-                success = false;
             }
 
-            return response;
+            return "";
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            listSong.clear();
-
-            JSONObject jsonObject = null;
-            try {
-                jsonObject = new JSONObject(s);
-                success = jsonObject.getBoolean(Constants.PARAMETER_SUCCESS);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            if (success) {
+            if (document != null) {
                 try {
-                    JSONArray jsonArray = jsonObject.getJSONArray("data");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObjectSong = (JSONObject) jsonArray.get(i);
-                        Song song = new Song();
-                        song.setArtist(jsonObjectSong.getString("artist"));
-                        song.setTitle(jsonObjectSong.getString("song"));
-                        song.setUrl(jsonObjectSong.getString("url"));
-                        listSong.add(song);
+                    Elements elementsTr = document.select("div.colortable table tbody tr");
+                    if (elementsTr != null) {
+                        for (int iTr = 0; iTr < elementsTr.size(); iTr++) {
+                            Song song = new Song();
+                            Element eTr = elementsTr.get(iTr);
+                            Elements elementsTd = eTr.select("td");
+                            String artist = elementsTd.get(0).select("a").first().html();
+                            String title = elementsTd.get(1).text();
+                            String url = Constants.URL_BASE + elementsTd.get(1).select("a").get(0).attr("href");
+
+                            artist = artist.replace("&middot;", "");
+                            artist = artist.replace("·", "");
+                            artist = artist.replace("&nbsp;", "");
+                            if (title.toLowerCase().endsWith(" lyrics")) {
+                                title = title.replace(" Lyrics", "");
+                                title = title.replace(" lyrics", "");
+                            }
+
+                            song.setTitle(title);
+                            song.setArtist(artist);
+                            song.setUrl(url);
+                            listSong.add(song);
+                        }
                     }
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -304,4 +264,5 @@ public class SearchActivity extends AppCompatActivity {
             updateUI();
         }
     }
+
 }
