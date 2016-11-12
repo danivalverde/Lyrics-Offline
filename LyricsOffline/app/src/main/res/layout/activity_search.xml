@@ -29,10 +29,60 @@
         android:layout_above="@id/adView"
         android:layout_below="@id/search_toolbar">
 
+        <LinearLayout
+            android:id="@+id/search_layout_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <RadioGroup
+                android:id="@+id/search_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginRight="32dp"
+                android:background="@drawable/pink_out_line"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radio_song"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/toggle_widget_background"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:text="Song"
+                    android:textColor="#FFFFFF"
+                    android:onClick="onSearchTypeClick"
+                    android:checked="false"/>
+
+                <RadioButton
+                    android:id="@+id/radio_artist"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="1dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/toggle_widget_background"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:text="Artist"
+                    android:textColor="#FFFFFF"
+                    android:onClick="onSearchTypeClick"
+                    android:checked="false"/>
+
+            </RadioGroup>
+
+        </LinearLayout>
+
         <RelativeLayout
             android:id="@+id/layout_search_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/search_layout_category"
             android:layout_marginTop="16dp">
 
             <ImageButton
@@ -75,7 +125,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/layout_search_text"
             android:divider="@drawable/list_divider"
-            android:dividerHeight="1dip" />
+            android:dividerHeight="1dip"
+            android:layout_marginTop="16dp"/>
 
         <RelativeLayout
             android:id="@+id/loadingPanel"

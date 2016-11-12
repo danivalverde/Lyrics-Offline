@@ -27,6 +27,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +43,7 @@ public class SearchActivity extends AppCompatActivity {
 
     String querySong = "";
     ArrayList<Song> listSong;
+    String searchType = "SONG";
 
     TextInputLayout searchWrapper;
     EditText txtSearch;
@@ -74,6 +76,8 @@ public class SearchActivity extends AppCompatActivity {
         this.txtSearch = (EditText) findViewById(R.id.txtSearch);
         this.btnSearch = (ImageButton) findViewById(R.id.btnSearch);
         this.searchListView = (ListView) findViewById(R.id.search_list_view);
+
+        this.setSongAsSearchType();
 
         this.txtSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -127,8 +131,8 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
         // Load ads
-        //AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
-        AdRequest adRequest = new AdRequest.Builder().build();
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("DA739339631C84C0455858D3E8F25F7D").build();
+        //AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
     }
 
@@ -207,6 +211,45 @@ public class SearchActivity extends AppCompatActivity {
             db.close();
             this.finish();
         }
+    }
+
+    public void onSearchTypeClick(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch (view.getId()) {
+            case R.id.radio_artist:
+                if (checked) {
+                    this.setArtistAsSearchType();
+                }
+                break;
+            case R.id.radio_song:
+                if (checked) {
+                    this.setSongAsSearchType();
+                }
+                break;
+        }
+    }
+
+    private void setSongAsSearchType() {
+        RadioButton radioSong = (RadioButton) findViewById(R.id.radio_song);
+        RadioButton radioArtist = (RadioButton) findViewById(R.id.radio_artist);
+        radioArtist.setBackgroundColor(Color.parseColor("#FFFFFF"));
+        radioArtist.setTextColor(Color.parseColor("#000000"));
+        radioSong.setBackgroundResource(R.drawable.toggle_widget_background);
+        radioSong.setTextColor(Color.parseColor("#FFFFFF"));
+        this.searchType = "SONG";
+    }
+
+    private void setArtistAsSearchType() {
+        RadioButton radioSong = (RadioButton) findViewById(R.id.radio_song);
+        RadioButton radioArtist = (RadioButton) findViewById(R.id.radio_artist);
+        radioSong.setBackgroundColor(Color.parseColor("#FFFFFF"));
+        radioSong.setTextColor(Color.parseColor("#000000"));
+        radioArtist.setBackgroundResource(R.drawable.toggle_widget_background);
+        radioArtist.setTextColor(Color.parseColor("#FFFFFF"));
+        this.searchType = "ARTIST";
     }
 
     // Select song (HTTP GET)
