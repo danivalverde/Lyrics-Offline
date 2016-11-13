@@ -10,6 +10,9 @@
     <string name="error_saving_song">Impossible to save the lyrics</string>
     <string name="confirm_delete_title">You are going to delete this lyric.</string>
     <string name="confirm_delete_message">Are you sure?</string>
+    <string name="error_getting_songs">Oops. Something went wrong.</string>
+    <string name="search_by_song">Search by Song</string>
+    <string name="search_by_artist">Search by Artist</string>
 
 
     <!-- -

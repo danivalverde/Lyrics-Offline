@@ -5,10 +5,10 @@ package com.danidevelop.lyricsoffline.objects;
  */
 
 public class Song {
-    String title;
-    String artist;
-    String url;
-    String lyric;
+    private String title;
+    private String artist;
+    private String url;
+    private String lyric;
 
     public Song() {
     }

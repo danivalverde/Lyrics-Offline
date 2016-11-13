@@ -2,7 +2,9 @@ package com.danidevelop.lyricsoffline;
 
 import com.danidevelop.lyricsoffline.Constants.Constants;
 import com.danidevelop.lyricsoffline.SQL.SongsSQLiteHelper;
+import com.danidevelop.lyricsoffline.adapters.ArtistAdapter;
 import com.danidevelop.lyricsoffline.adapters.SongAdapter;
+import com.danidevelop.lyricsoffline.objects.Artist;
 import com.danidevelop.lyricsoffline.objects.Song;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -10,6 +12,7 @@ import com.google.android.gms.ads.AdView;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -43,6 +46,7 @@ public class SearchActivity extends AppCompatActivity {
 
     String querySong = "";
     ArrayList<Song> listSong;
+    ArrayList<Artist> listArtist;
     String searchType = "SONG";
 
     TextInputLayout searchWrapper;
@@ -59,6 +63,15 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
 
         this.listSong = new ArrayList<>();
+        this.listArtist = new ArrayList<>();
+
+        Intent intent = getIntent();
+        /* ToDo:
+            - Recuperar del intent un ArrayList<Song>.
+            - Comprobar que el intent puede venir vacío o no.
+            - Creo que habrá que implementar Parcelable en Song.
+            - Cambiar el icono de buscar por uno redondeado estilo material.
+         */
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.search_toolbar);
         myToolbar.setTitleTextColor(Color.argb(255, 255, 255, 255));
@@ -169,25 +182,44 @@ public class SearchActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 
             this.listSong.clear();
+            this.listArtist.clear();
             findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
             this.querySong = this.txtSearch.getText().toString();
-            /*SelectSongAsyncTask task = new SelectSongAsyncTask();
-            task.execute();*/
 
-            SearchSongTask task = new SearchSongTask();
-            task.execute();
+            if (this.searchType.equals("SONG")) {
+                SearchSongTask task = new SearchSongTask();
+                task.execute();
+            } else {
+                SearchArtistTask task = new SearchArtistTask();
+                task.execute();
+            }
         }
     }
 
     private void updateUI() {
+
+        if(this.searchType.equals("SONG")) this.showSongList();
+        else this.showArtistList();
+
+        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+    }
+
+    private void showSongList() {
         if (this.listSong.size() == 0) {
             Toast.makeText(getApplicationContext(), getString(R.string.http_call_error), Toast.LENGTH_SHORT).show();
         } else {
             SongAdapter adapter = new SongAdapter(getApplicationContext(), this.listSong, R.layout.item_list_search, this);
             this.searchListView.setAdapter(adapter);
         }
+    }
 
-        findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+    private void showArtistList() {
+        if (this.listArtist.size() == 0) {
+            Toast.makeText(getApplicationContext(), getString(R.string.http_call_error), Toast.LENGTH_SHORT).show();
+        } else {
+            ArtistAdapter adapter = new ArtistAdapter(getApplicationContext(), this.listArtist);
+            this.searchListView.setAdapter(adapter);
+        }
     }
 
     public void saveSong(Song song) {
@@ -239,6 +271,8 @@ public class SearchActivity extends AppCompatActivity {
         radioArtist.setTextColor(Color.parseColor("#000000"));
         radioSong.setBackgroundResource(R.drawable.toggle_widget_background);
         radioSong.setTextColor(Color.parseColor("#FFFFFF"));
+        txtSearch.setHint(R.string.search_by_song);
+        searchWrapper.setHint(getString(R.string.search_by_song));
         this.searchType = "SONG";
     }
 
@@ -249,6 +283,8 @@ public class SearchActivity extends AppCompatActivity {
         radioSong.setTextColor(Color.parseColor("#000000"));
         radioArtist.setBackgroundResource(R.drawable.toggle_widget_background);
         radioArtist.setTextColor(Color.parseColor("#FFFFFF"));
+        txtSearch.setHint(R.string.search_by_artist);
+        searchWrapper.setHint(getString(R.string.search_by_artist));
         this.searchType = "ARTIST";
     }
 
@@ -288,6 +324,8 @@ public class SearchActivity extends AppCompatActivity {
                             artist = artist.replace("&middot;", "");
                             artist = artist.replace("·", "");
                             artist = artist.replace("&nbsp;", "");
+                            artist = artist.replace("&amp;", "&");
+                            title = title.replace("&amp;", "&");
                             if (title.toLowerCase().endsWith(" lyrics")) {
                                 title = title.replace(" Lyrics", "");
                                 title = title.replace(" lyrics", "");
@@ -308,4 +346,55 @@ public class SearchActivity extends AppCompatActivity {
         }
     }
 
+    private class SearchArtistTask extends AsyncTask<Void, Void, String> {
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            try {
+                String url = Constants.URL_SELECT_ARTIST + querySong;
+                document = Jsoup.connect(url).get();
+            } catch (IOException e) {
+                document = null;
+                e.printStackTrace();
+            }
+
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            if (document != null) {
+                try {
+                    Elements elementsTr = document.select("div.colortable table tbody tr");
+                    if(elementsTr != null) {
+                        for (int iTr = 0; iTr < elementsTr.size(); iTr++) {
+                            Artist artist = new Artist();
+                            Elements elementsTd = elementsTr.get(iTr).select("td");
+                            String name = elementsTd.get(0).select("a").first().html();
+                            String url = Constants.URL_BASE + elementsTd.get(0).select("a").get(0).attr("href");
+
+                            name = name.replace("&middot;", "");
+                            name = name.replace("·", "");
+                            name = name.replace("&nbsp;", "");
+                            name = name.replace("&amp;", "&");
+                            if (name.toLowerCase().endsWith(" lyrics")) {
+                                name = name.replace(" Lyrics", "");
+                                name = name.replace(" lyrics", "");
+                            }
+
+                            artist.setName(name);
+                            artist.setUrl(url);
+                            listArtist.add(artist);
+                        }
+                    }
+                } catch (Exception ex){
+                    ex.printStackTrace();
+                }
+            }
+
+            updateUI();
+        }
+    }
 }

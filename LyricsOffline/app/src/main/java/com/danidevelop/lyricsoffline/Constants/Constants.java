@@ -8,5 +8,5 @@ public class Constants {
 
     public static String URL_BASE = "http://www.lyricsfreak.com";
     public static String URL_SELECT_SONG = "http://www.lyricsfreak.com/search.php?a=search&type=song&q=";
-
+    public static String URL_SELECT_ARTIST = "http://www.lyricsfreak.com/search.php?a=search&type=band&q=";
 }
